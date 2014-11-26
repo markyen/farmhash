@@ -5,6 +5,7 @@ var Benchmark = require('benchmark');
 var murmurhash3 = require('murmurhash3');
 var xxhash = require('xxhash');
 var farmhash = require('../index');
+var crc = require('sse4_crc32');
 
 var randomInteger = function() {
   return Math.floor(Math.random() * 2147483647);
@@ -32,12 +33,14 @@ var randomStringOfLength = function(length) {
   var hashes = {
     murmurhash3: {},
     xxhash: {},
-    farmhash: {}
+    farmhash: {},
+    crc: {}
   };
   var collisions = {
     murmurhash3: 0,
     xxhash: 0,
-    farmhash: 0
+    farmhash: 0,
+    crc: 0
   };
   for (var seed = 0; seed < iterations; seed++) {
     var murmur = murmurhash3.murmur32Sync(input, seed);
@@ -58,11 +61,17 @@ var randomStringOfLength = function(length) {
     } else {
       hashes.farmhash[farm] = true;
     }
+    var crc32 = crc.calculate(input);
+    if (crc32 in hashes.crc) {
+	collisions.crc++;
+    } else {
+	hashes.crc[crc32] = true;
+    }
   }
   console.log('Collisions:');
   console.dir(collisions);
   console.log();
-})();
+});
 
 // Test 2
 
@@ -79,12 +88,14 @@ var randomStringOfLength = function(length) {
   var hashes = {
     murmurhash3: {},
     xxhash: {},
-    farmhash: {}
+    farmhash: {},
+    crc: {}
   };
   var collisions = {
     murmurhash3: 0,
     xxhash: 0,
-    farmhash: 0
+    farmhash: 0,
+    crc: 0,
   };
   for (var i = 0; i < iterations; i++) {
     var input = randomStringOfLength(keyLength);
@@ -108,11 +119,17 @@ var randomStringOfLength = function(length) {
     } else {
       hashes.farmhash[farm] = true;
     }
+    var crc32 = crc.calculate(input);
+    if (crc32 in hashes.crc) {
+	collisions.crc++;
+    } else {
+	hashes.crc[crc32] = true;
+    }
   }
   console.log('Collisions:');
   console.dir(collisions);
   console.log();
-})();
+});
 
 // Test 3
 
@@ -140,6 +157,8 @@ var randomStringOfLength = function(length) {
       farmhash.fingerprint32(input);
     }).add('xxhash+seed', function() {
       xxhash.hash(inputBuffer, seed);
+    }).add('sse4-crc32', function() {
+      crc.calculate(input);
     }).on('cycle', function(event) {
       console.log(String(event.target));
     }).run();

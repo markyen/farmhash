@@ -9,6 +9,7 @@
   "dependencies": {
     "benchmark": "^1.0.0",
     "murmurhash3": "^0.2.10",
+    "sse4_crc32": "^2.1.0",
     "xxhash": "^0.2.0"
   },
   "license": "Apache 2.0",
